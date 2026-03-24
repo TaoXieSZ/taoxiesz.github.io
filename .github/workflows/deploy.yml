@@ -33,7 +33,7 @@ jobs:
           npm install --no-audit --no-fund
 
       - name: Build site
-        run: npm run build
+        run: npm exec -- astro build
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
