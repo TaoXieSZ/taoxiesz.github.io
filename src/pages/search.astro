@@ -1,0 +1,19 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="搜索 | 谢韬的工作台" description="搜索博客文章。">
+  <section class="card hero">
+    <div class="eyebrow">搜索</div>
+    <h1>搜索文章</h1>
+    <p class="muted">在所有博客文章中查找。</p>
+  </section>
+
+  <section class="card" style="margin-top: 20px;">
+    <div id="search-box"></div>
+    <div id="results"></div>
+  </section>
+</BaseLayout>
+
+<link href="/pagefind/pagefind-ui.css" rel="stylesheet" />
+<script src="/pagefind/pagefind-ui.js" onload="new PagefindUI({ element: '#search-box', showSubResults: true, showImages: false });" />
