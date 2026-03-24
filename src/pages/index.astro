@@ -1,0 +1,52 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PostCard from '../components/PostCard.astro';
+import { getCollection } from 'astro:content';
+
+const posts = (await getCollection('blog', ({ data }) => !data.draft))
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+  .slice(0, 3);
+---
+
+<BaseLayout title="谢韬的工作台" description="一个面向 GitHub Pages 的个人博客骨架，记录技术、项目与自动化实践。">
+  <section class="card hero">
+    <div class="eyebrow">github.io · Astro · 可长期维护</div>
+    <h1>把博客做成公开工作台，而不是花哨名片页。</h1>
+    <p class="muted">
+      这里重点记录自动化、OpenClaw、Feishu 文档、GitHub 工作流，以及那些值得长期沉淀的方法和项目。
+    </p>
+  </section>
+
+  <section class="grid" style="margin-top: 20px;">
+    <div class="card">
+      <h2>我建议的博客定位</h2>
+      <ul>
+        <li>技术笔记：记录问题、方案和踩坑。</li>
+        <li>项目复盘：写清楚为什么这么做、结果怎么样。</li>
+        <li>工作流沉淀：把一次性聊天需求收敛成长期能力。</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h2>这个骨架已经带上的东西</h2>
+      <ul>
+        <li>Astro 静态站点结构</li>
+        <li>Markdown 内容目录</li>
+        <li>博客列表页和文章页</li>
+        <li>GitHub Pages Actions 部署文件</li>
+      </ul>
+    </div>
+  </section>
+
+  <section style="margin-top: 20px;">
+    <div style="display:flex; justify-content:space-between; align-items:end; gap:16px; margin-bottom: 12px;">
+      <div>
+        <h2>最近文章</h2>
+        <p class="muted">先把能稳定发布和持续写下去的结构搭好。</p>
+      </div>
+      <a href="/blog">查看全部 →</a>
+    </div>
+    <div class="grid posts">
+      {posts.map((post) => <PostCard post={post} />)}
+    </div>
+  </section>
+</BaseLayout>

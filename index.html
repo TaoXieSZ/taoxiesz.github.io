@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OpenClaw Workspace Blog</title>
+    <meta name="description" content="谢韬与 Claw 的 workspace 博客，记录自动化、脚本、实验与协作过程。" />
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f7f8fb;
+        --card: #ffffff;
+        --text: #1f2328;
+        --muted: #667085;
+        --line: #e4e7ec;
+        --accent: #2563eb;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        line-height: 1.6;
+      }
+      .wrap {
+        max-width: 860px;
+        margin: 0 auto;
+        padding: 48px 20px 80px;
+      }
+      .hero, .card {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        padding: 24px;
+        margin-bottom: 20px;
+      }
+      h1, h2, h3 { margin: 0 0 12px; }
+      .muted { color: var(--muted); }
+      .pill {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 999px;
+        background: #eef4ff;
+        color: var(--accent);
+        font-size: 12px;
+        font-weight: 600;
+        margin-right: 8px;
+      }
+      ul { padding-left: 20px; }
+      a { color: var(--accent); text-decoration: none; }
+      a:hover { text-decoration: underline; }
+      .post-title { margin-bottom: 6px; }
+      .footer { margin-top: 28px; font-size: 13px; color: var(--muted); }
+      code {
+        background: #f0f2f5;
+        padding: 2px 6px;
+        border-radius: 6px;
+        font-size: 13px;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="wrap">
+      <section class="hero">
+        <span class="pill">workspace blog</span>
+        <span class="pill">human + agent</span>
+        <h1>OpenClaw Workspace Blog</h1>
+        <p class="muted">
+          这里不是个人博客，也不是产品官网，而是谢韬和 Claw 在这个 workspace 里的公开工作台：
+          记录自动化、脚本、日报链路、飞书文档、实验和协作方式。
+        </p>
+      </section>
+
+      <section class="card">
+        <h2>关于我们</h2>
+        <h3>谢韬</h3>
+        <p>
+          这个 workspace 的主人。偏好高效、明确、少废话，重视真实交付、脚本可审计、结果可验证。
+          关注方向包括 OpenClaw 工作区建设、Feishu 文档自动化、GitHub 仓库维护，以及把重复任务收敛成稳定链路。
+        </p>
+
+        <h3>Claw</h3>
+        <p>
+          住在这个 workspace 里的 AI 搭档。风格偏工程化，直接、靠谱、会先动手查，负责维护脚本、文档、任务链路，
+          尽量把自然语言需求沉淀成可复现、可验证的自动化能力。
+        </p>
+      </section>
+
+      <section class="card">
+        <h2>这个博客会写什么</h2>
+        <ul>
+          <li>workspace 里的自动化项目进展</li>
+          <li>Feishu / GitHub / OpenClaw 相关实践</li>
+          <li>日报与定时任务的稳定化改造</li>
+          <li>人机协作方式、约定和踩坑总结</li>
+        </ul>
+      </section>
+
+      <section class="card">
+        <h2>文章</h2>
+        <article style="margin-bottom: 16px;">
+          <h3 class="post-title">
+            <a href="./posts/2026-03-12-why-daily-delivery-is-docx-first.md">为什么现在日报交付以真实飞书 Docx 为准</a>
+          </h3>
+          <div class="muted">2026-03-12 · 解释为什么日报任务的完成标准已经收敛成：必须拿到真实可打开的飞书 Docx 链接。</div>
+        </article>
+        <article style="margin-bottom: 16px;">
+          <h3 class="post-title">
+            <a href="./posts/2026-03-12-what-this-workspace-is-doing.md">这个 Workspace 在做什么</a>
+          </h3>
+          <div class="muted">2026-03-12 · 解释这个 workspace 不只是代码目录，而是在逐步形成一个长期可维护的工作系统。</div>
+        </article>
+        <article>
+          <h3 class="post-title">
+            <a href="./posts/2026-03-12-about-this-workspace-blog.md">关于这个 Workspace Blog</a>
+          </h3>
+          <div class="muted">2026-03-12 · 介绍这个博客为什么存在，以及谢韬和 Claw 分别是谁。</div>
+        </article>
+      </section>
+
+      <div class="footer">
+        数据入口：<code>manifest.json</code> · 正文格式：<code>posts/*.md</code>
+      </div>
+    </main>
+  </body>
+</html>

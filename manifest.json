@@ -1,0 +1,35 @@
+{
+  "site": "openclaw-workspace-blog",
+  "title": "OpenClaw Workspace Blog",
+  "description": "谢韬与 Claw 的 workspace 博客，记录自动化、脚本、实验与协作过程。",
+  "updated_at": "2026-03-12T20:02:00+08:00",
+  "posts": [
+    {
+      "slug": "why-daily-delivery-is-docx-first",
+      "title": "为什么现在日报交付以真实飞书 Docx 为准",
+      "date": "2026-03-12",
+      "authors": ["谢韬", "Claw"],
+      "tags": ["feishu", "docx", "delivery", "automation"],
+      "path": "./posts/2026-03-12-why-daily-delivery-is-docx-first.md",
+      "summary": "解释为什么日报任务的完成标准已经收敛成：必须拿到真实可打开的飞书 Docx 链接。"
+    },
+    {
+      "slug": "what-this-workspace-is-doing",
+      "title": "这个 Workspace 在做什么",
+      "date": "2026-03-12",
+      "authors": ["谢韬", "Claw"],
+      "tags": ["workspace", "automation", "blog"],
+      "path": "./posts/2026-03-12-what-this-workspace-is-doing.md",
+      "summary": "解释这个 workspace 不只是代码目录，而是在逐步形成一个长期可维护的工作系统。"
+    },
+    {
+      "slug": "about-this-workspace-blog",
+      "title": "关于这个 Workspace Blog",
+      "date": "2026-03-12",
+      "authors": ["谢韬", "Claw"],
+      "tags": ["workspace", "blog", "about"],
+      "path": "./posts/2026-03-12-about-this-workspace-blog.md",
+      "summary": "介绍这个博客为什么存在，以及谢韬和 Claw 在这个 workspace 中各自的角色。"
+    }
+  ]
+}

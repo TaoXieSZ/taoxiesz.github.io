@@ -1,0 +1,22 @@
+---
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  post: CollectionEntry<'blog'>;
+}
+
+const { post } = Astro.props;
+---
+
+<article class="card">
+  <div class="meta">{post.data.pubDate.toLocaleDateString('zh-CN')}</div>
+  <h3><a href={`/blog/${post.id.replace(/\.md$/, '')}/`}>{post.data.title}</a></h3>
+  <p class="muted">{post.data.description}</p>
+  {post.data.tags.length > 0 && (
+    <div class="tag-list">
+      {post.data.tags.map((tag) => (
+        <span class="tag">#{tag}</span>
+      ))}
+    </div>
+  )}
+</article>

@@ -1,0 +1,20 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PostCard from '../../components/PostCard.astro';
+import { getCollection } from 'astro:content';
+
+const posts = (await getCollection('blog', ({ data }) => !data.draft))
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+---
+
+<BaseLayout title="博客 | 谢韬的工作台" description="技术笔记、项目复盘与自动化实践。">
+  <section class="card hero">
+    <div class="eyebrow">博客</div>
+    <h1>技术、项目和工作流沉淀</h1>
+    <p class="muted">先写那些对未来的自己和协作者真正有用的东西。</p>
+  </section>
+
+  <section class="grid posts" style="margin-top: 20px;">
+    {posts.map((post) => <PostCard post={post} />)}
+  </section>
+</BaseLayout>
