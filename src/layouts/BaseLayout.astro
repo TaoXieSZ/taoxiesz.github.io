@@ -344,19 +344,29 @@ const { title = SITE_TITLE, description = SITE_DESCRIPTION } = Astro.props;
     font-size: 0.88em;
   }
   [data-theme="dark"] article.prose code { background: #1e2330; }
+
+  /* Shiki dual-theme: switch between light/dark via CSS variables */
+  .astro-code,
+  .astro-code span {
+    color: var(--shiki-light) !important;
+    background-color: var(--shiki-light-bg) !important;
+  }
+  [data-theme="dark"] .astro-code,
+  [data-theme="dark"] .astro-code span {
+    color: var(--shiki-dark) !important;
+    background-color: var(--shiki-dark-bg) !important;
+  }
+
   article.prose pre {
     overflow-x: auto;
-    background: #0f1219;
-    color: #e4e7ec;
     padding: 20px;
     border-radius: 12px;
     font-family: var(--font-mono);
     font-size: 0.85rem;
     line-height: 1.65;
-    border: 1px solid #1e2330;
+    border: 1px solid var(--line);
   }
-  [data-theme="dark"] article.prose pre { background: #0a0c12; border-color: #1a1e2a; }
-  article.prose pre code { background: transparent; padding: 0; }
+  article.prose pre code { background: transparent !important; padding: 0; }
   ul { padding-left: 1.25rem; }
 
   /* ── Staggered entrance animation ── */
