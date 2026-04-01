@@ -1,0 +1,458 @@
+---
+---
+
+<div id="clawd-mascot" class="clawd-container">
+  <div class="clawd-inner" id="clawd-inner"></div>
+</div>
+<div id="clawd-mini-swarm"></div>
+
+<script>
+  const SVGS = [
+    { file: '/clawd/clawd-idle-follow.svg', hasEyes: true },
+    { file: '/clawd/clawd-idle-living.svg', hasEyes: false },
+    { file: '/clawd/clawd-idle-look.svg', hasEyes: false },
+    { file: '/clawd/clawd-working-typing.svg', hasEyes: false },
+    { file: '/clawd/clawd-working-thinking.svg', hasEyes: false },
+    { file: '/clawd/clawd-happy.svg', hasEyes: false },
+  ];
+  const MINI_SVGS = [
+    '/clawd/clawd-idle-living.svg',
+    '/clawd/clawd-idle-look.svg',
+    '/clawd/clawd-working-typing.svg',
+    '/clawd/clawd-working-thinking.svg',
+    '/clawd/clawd-happy.svg',
+    '/clawd/clawd-sleeping.svg',
+  ];
+  const SLEEP_SVG = '/clawd/clawd-sleeping.svg';
+  const WAKE_SVG = '/clawd/clawd-wake.svg';
+  const MAX_OFFSET = 3;
+  const IDLE_WANDER_MS = 30000;
+  const SLEEP_MS = 60000;
+  const WAKE_DURATION_MS = 1500;
+
+  const container = document.getElementById('clawd-mascot')!;
+  const inner = document.getElementById('clawd-inner')!;
+  let currentSvgFile = '';
+  let eyeTarget: Element | null = null;
+  let bodyTarget: Element | null = null;
+  let shadowTarget: Element | null = null;
+  let lastEyeDx = 0;
+  let lastEyeDy = 0;
+  let lastMouseMove = Date.now();
+  let wanderTimer: ReturnType<typeof setTimeout> | null = null;
+  let sleepTimer: ReturnType<typeof setTimeout> | null = null;
+  let isAsleep = false;
+  let isWandering = false;
+  let isHome = true;
+  let loadGen = 0;
+  const svgCache = new Map<string, string>();
+
+  function pickRandom<T>(arr: T[], exclude?: T): T {
+    const pool = exclude ? arr.filter(a => a !== exclude) : arr;
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
+
+  function rand(min: number, max: number) {
+    return min + Math.random() * (max - min);
+  }
+
+  async function fetchSvg(file: string): Promise<string> {
+    const cached = svgCache.get(file);
+    if (cached) return cached;
+    const resp = await fetch(file);
+    const text = await resp.text();
+    svgCache.set(file, text);
+    return text;
+  }
+
+  async function loadSvg(file: string, onReady?: () => void) {
+    const gen = ++loadGen;
+    const svgText = await fetchSvg(file);
+    if (gen !== loadGen) return;
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'clawd-svg-wrap';
+    wrapper.innerHTML = svgText;
+    const svgEl = wrapper.querySelector('svg');
+    if (svgEl) {
+      svgEl.setAttribute('width', '100%');
+      svgEl.setAttribute('height', '100%');
+    }
+
+    wrapper.style.opacity = '0';
+    inner.appendChild(wrapper);
+
+    requestAnimationFrame(() => {
+      if (gen !== loadGen) { wrapper.remove(); return; }
+      wrapper.style.opacity = '1';
+      const old = inner.querySelectorAll('.clawd-svg-wrap');
+      old.forEach(el => { if (el !== wrapper) el.remove(); });
+      currentSvgFile = file;
+      onReady?.();
+    });
+  }
+
+  function attachEyeTracking() {
+    eyeTarget = inner.querySelector('#eyes-js');
+    bodyTarget = inner.querySelector('#body-js');
+    shadowTarget = inner.querySelector('#shadow-js');
+  }
+
+  function detachEyeTracking() {
+    eyeTarget = null;
+    bodyTarget = null;
+    shadowTarget = null;
+  }
+
+  function applyEyeMove(dx: number, dy: number) {
+    if (eyeTarget) {
+      (eyeTarget as HTMLElement).style.transform = `translate(${dx}px, ${dy}px)`;
+    }
+    if (bodyTarget || shadowTarget) {
+      const bdx = Math.round(dx * 0.33 * 2) / 2;
+      const bdy = Math.round(dy * 0.33 * 2) / 2;
+      if (bodyTarget) (bodyTarget as HTMLElement).style.transform = `translate(${bdx}px, ${bdy}px)`;
+      if (shadowTarget) {
+        const absDx = Math.abs(bdx);
+        const scaleX = 1 + absDx * 0.15;
+        const shiftX = Math.round(bdx * 0.3 * 2) / 2;
+        (shadowTarget as HTMLElement).style.transform = `translate(${shiftX}px, 0) scaleX(${scaleX})`;
+      }
+    }
+  }
+
+  function showRandomActive() {
+    const current = SVGS.find(s => s.file === currentSvgFile);
+    const choice = pickRandom(SVGS, current);
+    loadSvg(choice.file, () => {
+      if (choice.hasEyes) attachEyeTracking();
+      else detachEyeTracking();
+    });
+  }
+
+  function goToSleep() {
+    if (isAsleep) return;
+    isAsleep = true;
+    detachEyeTracking();
+    if (isWandering) returnHome();
+    loadSvg(SLEEP_SVG);
+  }
+
+  function wakeUp() {
+    if (!isAsleep) return;
+    isAsleep = false;
+    loadSvg(WAKE_SVG, () => {
+      setTimeout(() => {
+        if (!isAsleep) showRandomActive();
+      }, WAKE_DURATION_MS);
+    });
+  }
+
+  function wanderToRandomSpot() {
+    if (isWandering || isAsleep) return;
+    isWandering = true;
+    isHome = false;
+
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const size = container.offsetWidth;
+    const margin = 60;
+    const x = margin + Math.random() * (vw - size - margin * 2);
+    const y = margin + Math.random() * (vh - size - margin * 2);
+
+    container.style.transition = 'right 0.8s cubic-bezier(0.34,1.56,0.64,1), bottom 0.8s cubic-bezier(0.34,1.56,0.64,1), top 0.8s cubic-bezier(0.34,1.56,0.64,1), left 0.8s cubic-bezier(0.34,1.56,0.64,1)';
+    container.style.right = 'auto';
+    container.style.bottom = 'auto';
+    container.style.left = `${x}px`;
+    container.style.top = `${y}px`;
+
+    setTimeout(() => {
+      if (isWandering) returnHome();
+    }, 5000);
+  }
+
+  function returnHome() {
+    isWandering = false;
+    container.style.transition = 'right 0.8s cubic-bezier(0.34,1.56,0.64,1), bottom 0.8s cubic-bezier(0.34,1.56,0.64,1), top 0.8s cubic-bezier(0.34,1.56,0.64,1), left 0.8s cubic-bezier(0.34,1.56,0.64,1)';
+    container.style.left = 'auto';
+    container.style.top = 'auto';
+    container.style.right = '20px';
+    container.style.bottom = '20px';
+    isHome = true;
+  }
+
+  function resetTimers() {
+    lastMouseMove = Date.now();
+    if (wanderTimer) clearTimeout(wanderTimer);
+    if (sleepTimer) clearTimeout(sleepTimer);
+    wanderTimer = setTimeout(() => {
+      if (!isAsleep && !matchMedia('(pointer: coarse)').matches) wanderToRandomSpot();
+    }, IDLE_WANDER_MS);
+    sleepTimer = setTimeout(() => goToSleep(), SLEEP_MS);
+  }
+
+  document.addEventListener('mousemove', (e) => {
+    if (isAsleep) { wakeUp(); }
+    resetTimers();
+
+    if (!eyeTarget) return;
+    const rect = container.getBoundingClientRect();
+    const eyeScreenX = rect.left + rect.width * (22 / 45);
+    const eyeScreenY = rect.top + rect.height * (7.5 / 45);
+    const relX = e.clientX - eyeScreenX;
+    const relY = e.clientY - eyeScreenY;
+
+    const dist = Math.sqrt(relX * relX + relY * relY);
+    let dx = 0, dy = 0;
+    if (dist > 1) {
+      const scale = Math.min(1, dist / 300);
+      dx = (relX / dist) * MAX_OFFSET * scale;
+      dy = (relY / dist) * MAX_OFFSET * scale;
+    }
+    dx = Math.round(dx * 2) / 2;
+    dy = Math.round(dy * 2) / 2;
+
+    if (dx !== lastEyeDx || dy !== lastEyeDy) {
+      lastEyeDx = dx;
+      lastEyeDy = dy;
+      applyEyeMove(dx, dy);
+    }
+  });
+
+  container.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (isAsleep) { wakeUp(); return; }
+    if (isWandering) returnHome();
+    showRandomActive();
+    resetTimers();
+  });
+
+  document.addEventListener('keydown', () => {
+    if (isAsleep) wakeUp();
+    resetTimers();
+  }, { passive: true });
+
+  [...SVGS.map(s => s.file), SLEEP_SVG, WAKE_SVG].forEach(f => fetchSvg(f));
+
+  showRandomActive();
+  resetTimers();
+
+  requestAnimationFrame(() => {
+    container.classList.add('clawd-entered');
+  });
+
+  // ── Mini swarm: decorative background bots ──
+  (async function spawnMiniSwarm() {
+    const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const isMobile = window.innerWidth < 640;
+    const count = isMobile ? 3 : Math.min(7, Math.floor(window.innerWidth / 200));
+    const swarm = document.getElementById('clawd-mini-swarm')!;
+
+    const HUES = [0, 30, 60, 120, 180, 220, 270, 310];
+
+    const occupied: { x: number; y: number; s: number }[] = [];
+    function findSpot(size: number): { x: number; y: number } | null {
+      const margin = 30;
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      for (let tries = 0; tries < 40; tries++) {
+        const x = margin + Math.random() * (vw - size - margin * 2);
+        const y = margin + Math.random() * (vh - size - margin * 2);
+        const tooClose = occupied.some(o => {
+          const dx = o.x + o.s / 2 - (x + size / 2);
+          const dy = o.y + o.s / 2 - (y + size / 2);
+          return Math.sqrt(dx * dx + dy * dy) < (o.s + size) * 0.6;
+        });
+        if (!tooClose) return { x, y };
+      }
+      return null;
+    }
+
+    for (let i = 0; i < count; i++) {
+      const file = MINI_SVGS[Math.floor(Math.random() * MINI_SVGS.length)];
+      const svgText = await fetchSvg(file);
+
+      const size = Math.round(isMobile ? rand(28, 48) : rand(36, 68));
+      const spot = findSpot(size);
+      if (!spot) continue;
+      occupied.push({ x: spot.x, y: spot.y, s: size });
+
+      const hue = HUES[Math.floor(Math.random() * HUES.length)];
+      const opacity = rand(0.2, 0.45);
+      const driftDur = rand(18, 30);
+      const driftDelay = rand(0, -driftDur);
+      const driftX = rand(8, 20) * (Math.random() > 0.5 ? 1 : -1);
+      const driftY = rand(6, 14) * (Math.random() > 0.5 ? 1 : -1);
+      const flip = Math.random() > 0.5;
+
+      const el = document.createElement('div');
+      el.className = 'clawd-mini-bot';
+      el.innerHTML = svgText;
+      const svg = el.querySelector('svg');
+      if (svg) {
+        svg.setAttribute('width', '100%');
+        svg.setAttribute('height', '100%');
+      }
+
+      Object.assign(el.style, {
+        width: `${size}px`,
+        height: `${size}px`,
+        left: `${spot.x}px`,
+        top: `${spot.y}px`,
+        opacity: '0',
+        filter: `hue-rotate(${hue}deg) saturate(1.2)`,
+        transform: flip ? 'scaleX(-1)' : 'none',
+      });
+
+      if (!reducedMotion) {
+        el.style.setProperty('--drift-x', `${driftX}px`);
+        el.style.setProperty('--drift-y', `${driftY}px`);
+        el.style.animation = `clawd-drift ${driftDur}s ${driftDelay}s infinite ease-in-out`;
+      }
+
+      swarm.appendChild(el);
+
+      requestAnimationFrame(() => {
+        setTimeout(() => { el.style.opacity = String(opacity); }, i * 120);
+      });
+    }
+  })();
+</script>
+
+<style>
+  .clawd-container {
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    width: 100px;
+    height: 100px;
+    z-index: 9999;
+    cursor: pointer;
+    pointer-events: auto;
+    opacity: 0;
+    transform: translateY(20px) scale(0.8);
+    transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    image-rendering: pixelated;
+  }
+
+  .clawd-container.clawd-entered {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  .clawd-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+  }
+
+  :global(.clawd-svg-wrap) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    transition: opacity 0.4s ease;
+  }
+
+  :global(.clawd-svg-wrap svg) {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* ── Mini swarm ── */
+  :global(#clawd-mini-swarm) {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    overflow: hidden;
+  }
+
+  :global(.clawd-mini-bot) {
+    position: absolute;
+    image-rendering: pixelated;
+    pointer-events: none;
+    transition: opacity 1.2s ease;
+    will-change: transform;
+  }
+
+  :global(.clawd-mini-bot svg) {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  @keyframes clawd-drift {
+    0%, 100% { translate: 0 0; }
+    25% { translate: var(--drift-x) 0; }
+    50% { translate: var(--drift-x) var(--drift-y); }
+    75% { translate: 0 var(--drift-y); }
+  }
+
+  /* ── Dark mode: warm ambient glow (main mascot only) ── */
+  :global([data-theme="dark"]) .clawd-container {
+    filter:
+      drop-shadow(0 0 6px rgba(222, 136, 109, 0.45))
+      drop-shadow(0 0 14px rgba(222, 136, 109, 0.15));
+    animation: clawd-glow 3.2s infinite ease-in-out;
+  }
+
+  @keyframes clawd-glow {
+    0%, 100% {
+      filter:
+        drop-shadow(0 0 6px rgba(222, 136, 109, 0.45))
+        drop-shadow(0 0 14px rgba(222, 136, 109, 0.15));
+    }
+    50% {
+      filter:
+        drop-shadow(0 0 8px rgba(222, 136, 109, 0.55))
+        drop-shadow(0 0 18px rgba(222, 136, 109, 0.25));
+    }
+  }
+
+  /* ── Dark mode: invert ground shadow from black → light ── */
+  :global([data-theme="dark"] .clawd-svg-wrap #ground-shadow),
+  :global([data-theme="dark"] .clawd-svg-wrap #shadow-js rect),
+  :global([data-theme="dark"] .clawd-svg-wrap .shadow-anim),
+  :global([data-theme="dark"] .clawd-svg-wrap .shadow-breathe),
+  :global([data-theme="dark"] .clawd-svg-wrap .shadow-think),
+  :global([data-theme="dark"] .clawd-svg-wrap rect.shadow),
+  :global([data-theme="dark"] .clawd-svg-wrap .once.shadow),
+  :global([data-theme="dark"] .clawd-mini-bot #ground-shadow),
+  :global([data-theme="dark"] .clawd-mini-bot #shadow-js rect),
+  :global([data-theme="dark"] .clawd-mini-bot .shadow-anim),
+  :global([data-theme="dark"] .clawd-mini-bot .shadow-breathe),
+  :global([data-theme="dark"] .clawd-mini-bot .shadow-think),
+  :global([data-theme="dark"] .clawd-mini-bot rect.shadow),
+  :global([data-theme="dark"] .clawd-mini-bot .once.shadow) {
+    fill: rgba(255, 255, 255, 0.12);
+  }
+
+  /* ── Dark mode: subtle glow on mini bots too ── */
+  :global([data-theme="dark"] .clawd-mini-bot) {
+    filter: var(--orig-filter, none)
+      drop-shadow(0 0 4px rgba(255, 255, 255, 0.08));
+  }
+
+  @media (max-width: 640px) {
+    .clawd-container {
+      width: 70px;
+      height: 70px;
+      right: 12px;
+      bottom: 12px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .clawd-container {
+      transition: none;
+      opacity: 1;
+      transform: none;
+      animation: none;
+    }
+    :global(.clawd-mini-bot) {
+      animation: none !important;
+    }
+  }
+</style>

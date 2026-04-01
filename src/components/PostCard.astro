@@ -8,7 +8,7 @@ interface Props {
 const { post } = Astro.props;
 ---
 
-<article class="card">
+<article class="card post-card">
   <div class="meta">{post.data.pubDate.toLocaleDateString('zh-CN')}</div>
   <h3><a href={`/blog/${post.id.replace(/\.md$/, '')}/`}>{post.data.title}</a></h3>
   <p class="muted">{post.data.description}</p>
@@ -20,3 +20,20 @@ const { post } = Astro.props;
     </div>
   )}
 </article>
+
+<style>
+  .post-card h3 {
+    margin-top: 6px;
+  }
+  .post-card h3 a {
+    color: var(--text);
+    transition: color 0.15s;
+  }
+  .post-card:hover h3 a {
+    color: var(--accent);
+  }
+  .post-card p {
+    font-size: 0.92rem;
+    line-height: 1.6;
+  }
+</style>
