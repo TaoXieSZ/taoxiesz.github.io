@@ -272,7 +272,7 @@
       const file = MINI_SVGS[Math.floor(Math.random() * MINI_SVGS.length)];
       const svgText = await fetchSvg(file);
 
-      const size = Math.round(isMobile ? rand(28, 48) : rand(36, 68));
+      const size = Math.round(isMobile ? rand(48, 72) : rand(64, 110));
       const spot = findSpot(size);
       if (!spot) continue;
       occupied.push({ x: spot.x, y: spot.y, s: size });
