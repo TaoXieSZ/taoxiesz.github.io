@@ -1,5 +1,7 @@
 # 谢韬的工作台博客
 
+URL: https://taoxiesz.github.io/
+
 这是一个基于 **Astro + GitHub Pages** 的个人博客骨架，目标很明确：
 
 - 轻
