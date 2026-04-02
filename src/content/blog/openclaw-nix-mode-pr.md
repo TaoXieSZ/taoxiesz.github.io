@@ -2,6 +2,7 @@
 title: OpenClaw PR #40: Nix Mode Support 实现文档
 description: 详细解析 OpenClaw/Clawdis 项目 Nix 模式支持的实现，包括声明式配置管理、macOS 可重现构建、Telegram 密钥管理改进等功能。
 pubDate: 2026-03-27
+project: openclaw
 tags:
   - openclaw
   - clawdis

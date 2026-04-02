@@ -3,6 +3,7 @@ title: 把 OpenViking 接进 OpenClaw 记忆系统
 description: 记录一次把 OpenViking 配进 OpenClaw、替换默认 memory-core，并确认记忆链路生效的过程。
 pubDate: 2026-03-27
 author: 谢韬
+project: openclaw
 tags:
   - openclaw
   - openviking

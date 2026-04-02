@@ -3,6 +3,7 @@ title: Claude Code 源码深度分析：一个工业级 AI Agent 是怎么炼成
 description: 基于 @anthropic-ai/claude-code v2.1.88 反编译源码，从 Agent 循环、工具系统、权限模型、上下文压缩到多代理协作，完整拆解 Claude Code 的技术架构，并与 Copilot、Cursor、Devin 做横向对比。
 pubDate: 2026-03-31
 author: 谢韬
+project: claude-code
 tags:
   - claude-code
   - ai-agent

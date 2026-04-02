@@ -2,10 +2,30 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PostCard from '../components/PostCard.astro';
 import { getCollection } from 'astro:content';
+import { PROJECTS } from '../consts';
 
-const posts = (await getCollection('blog', ({ data }) => !data.draft))
-  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
-  .slice(0, 3);
+const allPosts = (await getCollection('blog', ({ data }) => !data.draft))
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+
+// Group by project
+const projectPosts = new Map<string, typeof allPosts>();
+const blogPosts: typeof allPosts = [];
+
+for (const post of allPosts) {
+  if (post.data.project) {
+    const list = projectPosts.get(post.data.project) || [];
+    list.push(post);
+    projectPosts.set(post.data.project, list);
+  } else {
+    blogPosts.push(post);
+  }
+}
+
+// Get latest post per project
+const latestPerProject = new Map<string, typeof allPosts[number]>();
+for (const [project, posts] of projectPosts) {
+  latestPerProject.set(project, posts[0]);
+}
 ---
 
 <BaseLayout title="谢韬的工作台" description="一个面向 GitHub Pages 的个人博客骨架，记录技术、项目与自动化实践。">
@@ -17,43 +37,91 @@ const posts = (await getCollection('blog', ({ data }) => !data.draft))
     </p>
   </section>
 
-  <section class="grid duo" style="margin-top: 20px;">
-    <div class="card">
-      <h2>博客定位</h2>
-      <ul>
-        <li>技术笔记：记录问题、方案和踩坑。</li>
-        <li>项目复盘：写清楚为什么这么做、结果怎么样。</li>
-        <li>工作流沉淀：把一次性聊天需求收敛成长期能力。</li>
-      </ul>
+  <section style="margin-top: 20px;">
+    <div class="section-header">
+      <div>
+        <h2>项目动态</h2>
+        <p class="muted">按项目追踪最新进展。</p>
+      </div>
     </div>
-    <div class="card">
-      <h2>已有能力</h2>
-      <ul>
-        <li>Astro 静态站点结构</li>
-        <li>Markdown 内容目录</li>
-        <li>博客列表页和文章页</li>
-        <li>GitHub Pages Actions 部署</li>
-      </ul>
+    <div class="grid projects">
+      {Object.entries(PROJECTS).map(([key, meta]) => {
+        const latest = latestPerProject.get(key);
+        return (
+          <article class="card project-card">
+            <div class="project-label">{meta.label}</div>
+            <p class="muted project-desc">{meta.description}</p>
+            {latest && (
+              <div class="latest-post">
+                <div class="meta">{latest.data.pubDate.toLocaleDateString('zh-CN')}</div>
+                <h3><a href={`/blog/${latest.id.replace(/\.md$/, '')}/`}>{latest.data.title}</a></h3>
+                <p class="muted">{latest.data.description}</p>
+              </div>
+            )}
+          </article>
+        );
+      })}
     </div>
   </section>
 
-  <section style="margin-top: 32px;">
-    <div class="section-header">
-      <div>
-        <h2>最近文章</h2>
-        <p class="muted">先把能稳定发布和持续写下去的结构搭好。</p>
+  {blogPosts.length > 0 && (
+    <section style="margin-top: 32px;">
+      <div class="section-header">
+        <div>
+          <h2>博客文章</h2>
+          <p class="muted">先把能稳定发布和持续写下去的结构搭好。</p>
+        </div>
+        <a href="/blog" class="view-all">查看全部 <span>&rarr;</span></a>
       </div>
-      <a href="/blog" class="view-all">查看全部 <span>→</span></a>
-    </div>
-    <div class="grid posts">
-      {posts.map((post) => <PostCard post={post} />)}
-    </div>
-  </section>
+      <div class="grid posts">
+        {blogPosts.map((post) => <PostCard post={post} />)}
+      </div>
+    </section>
+  )}
 </BaseLayout>
 
 <style>
-  .duo {
+  .projects {
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
+  .project-card {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .project-label {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--text);
+  }
+  .project-desc {
+    font-size: 0.88rem;
+    margin: 0;
+  }
+  .latest-post {
+    margin-top: 4px;
+    padding-top: 12px;
+    border-top: 1px solid var(--line);
+  }
+  .latest-post h3 {
+    margin: 4px 0;
+    font-size: 0.95rem;
+  }
+  .latest-post h3 a {
+    color: var(--text);
+    transition: color 0.15s;
+  }
+  .project-card:hover .latest-post h3 a {
+    color: var(--accent);
+  }
+  .latest-post p {
+    font-size: 0.85rem;
+    margin: 0;
+    line-height: 1.5;
+  }
+  .posts {
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   }
   .section-header {
     display: flex;
