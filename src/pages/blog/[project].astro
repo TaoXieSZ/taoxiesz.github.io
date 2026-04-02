@@ -1,0 +1,34 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PostCard from '../../components/PostCard.astro';
+import { getCollection } from 'astro:content';
+import { PROJECTS } from '../../consts';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('blog', ({ data }) => !data.draft);
+  return Object.keys(PROJECTS).map((project) => ({
+    params: { project },
+    props: {
+      posts: posts
+        .filter((p) => p.data.project === project)
+        .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+    }
+  }));
+}
+
+const { project } = Astro.params;
+const { posts } = Astro.props;
+const meta = PROJECTS[project];
+---
+
+<BaseLayout title={`${meta.label} | 谢韬的工作台`} description={meta.description}>
+  <section class="card hero">
+    <div class="eyebrow"><a href="/blog">博客</a> / {meta.label}</div>
+    <h1>{meta.label}</h1>
+    <p class="muted">{meta.description}</p>
+  </section>
+
+  <section class="grid posts" style="margin-top: 20px;">
+    {posts.map((post) => <PostCard post={post} />)}
+  </section>
+</BaseLayout>

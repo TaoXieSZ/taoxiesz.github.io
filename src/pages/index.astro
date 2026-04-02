@@ -49,7 +49,7 @@ for (const [project, posts] of projectPosts) {
         const latest = latestPerProject.get(key);
         return (
           <article class="card project-card">
-            <div class="project-label">{meta.label}</div>
+            <div class="project-label"><a href={`/blog/${key}/`}>{meta.label}</a></div>
             <p class="muted project-desc">{meta.description}</p>
             {latest && (
               <div class="latest-post">
@@ -93,7 +93,13 @@ for (const [project, posts] of projectPosts) {
     font-family: var(--font-mono);
     font-weight: 700;
     font-size: 1.1rem;
+  }
+  .project-label a {
     color: var(--text);
+    transition: color 0.15s;
+  }
+  .project-card:hover .project-label a {
+    color: var(--accent);
   }
   .project-desc {
     font-size: 0.88rem;
