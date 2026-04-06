@@ -14,4 +14,5 @@ export const PROJECTS: Record<string, { label: string; description: string }> = 
   mewagents: { label: 'Mewagents', description: '猫猫军团多智能体协作' },
   feishu: { label: 'Feishu 文档自动化', description: '飞书文档交付链路' },
   'claude-code': { label: 'Claude Code', description: '源码分析与产品拆解' },
+  'oh-my-cursor': { label: 'Oh My Cursor', description: 'Cursor IDE 工作流编排层' },
 };
