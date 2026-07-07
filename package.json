@@ -11,7 +11,10 @@
     "check": "astro check"
   },
   "dependencies": {
+    "@astrojs/rss": "^4.0.18",
+    "@astrojs/sitemap": "^3.7.2",
     "astro": "^5.5.5",
+    "omc": "^1.0.1",
     "pagefind": "^1.4.0"
   }
 }

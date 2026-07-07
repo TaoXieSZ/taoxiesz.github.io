@@ -1,39 +1,47 @@
 ---
 import type { CollectionEntry } from 'astro:content';
+import { readingTime } from '../utils/reading-time';
+import { postSlug } from '../consts';
 
 interface Props {
   post: CollectionEntry<'blog'>;
 }
 
 const { post } = Astro.props;
+const { body } = post;
+const time = readingTime(body || '');
 ---
 
-<article class="card post-card">
-  <div class="meta">{post.data.pubDate.toLocaleDateString('zh-CN')}</div>
-  <h3><a href={`/blog/${post.id.replace(/\.md$/, '')}/`}>{post.data.title}</a></h3>
-  <p class="muted">{post.data.description}</p>
-  {post.data.tags.length > 0 && (
-    <div class="tag-list">
-      {post.data.tags.map((tag) => (
-        <span class="tag">#{tag}</span>
-      ))}
-    </div>
-  )}
+<article class="post-row">
+  <div class="meta post-row-meta">{post.data.pubDate.toLocaleDateString('zh-CN')} · {time}</div>
+  <div class="post-row-body">
+    <h3><a href={`/blog/${postSlug(post.id)}/`}>{post.data.title}</a></h3>
+    <p class="muted">{post.data.description}</p>
+    {post.data.tags.length > 0 && (
+      <div class="tag-list">
+        {post.data.tags.map((tag) => (
+          <a href={`/tags/${encodeURIComponent(tag)}/`} class="tag">#{tag}</a>
+        ))}
+      </div>
+    )}
+  </div>
 </article>
 
 <style>
-  .post-card h3 {
-    margin-top: 6px;
+  .post-row {
+    display: grid;
+    grid-template-columns: 132px 1fr;
+    gap: 4px 20px;
+    padding: 18px 0;
+    border-bottom: 1px solid var(--line);
   }
-  .post-card h3 a {
-    color: var(--text);
-    transition: color 0.15s;
-  }
-  .post-card:hover h3 a {
-    color: var(--accent);
-  }
-  .post-card p {
-    font-size: 0.92rem;
-    line-height: 1.6;
+  .post-row-meta { padding-top: 3px; white-space: nowrap; }
+  .post-row h3 { margin: 0 0 6px; font-size: 1rem; }
+  .post-row h3 a { color: var(--text); transition: color 0.15s; }
+  .post-row h3 a:hover { color: var(--accent); text-decoration: none; }
+  .post-row p { font-size: 0.9rem; line-height: 1.6; margin: 0; }
+  .post-row .tag-list { margin-top: 8px; }
+  @media (max-width: 640px) {
+    .post-row { grid-template-columns: 1fr; }
   }
 </style>

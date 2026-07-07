@@ -28,7 +28,13 @@ const meta = PROJECTS[project];
     <p class="muted">{meta.description}</p>
   </section>
 
-  <section class="grid posts" style="margin-top: 20px;">
-    {posts.map((post) => <PostCard post={post} />)}
-  </section>
+  {posts.length > 0 ? (
+    <section class="grid posts" style="margin-top: 20px;">
+      {posts.map((post) => <PostCard post={post} />)}
+    </section>
+  ) : (
+    <section class="card" style="margin-top: 20px; text-align: center;">
+      <p class="muted" style="margin: 0;">这个项目还没有发布文章，敬请期待。</p>
+    </section>
+  )}
 </BaseLayout>

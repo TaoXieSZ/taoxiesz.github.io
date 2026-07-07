@@ -2,160 +2,159 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PostCard from '../components/PostCard.astro';
 import { getCollection } from 'astro:content';
-import { PROJECTS } from '../consts';
+import { PROJECTS, postSlug } from '../consts';
 
 const allPosts = (await getCollection('blog', ({ data }) => !data.draft))
   .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 
 // Group by project
 const projectPosts = new Map<string, typeof allPosts>();
-const blogPosts: typeof allPosts = [];
-
 for (const post of allPosts) {
   if (post.data.project) {
     const list = projectPosts.get(post.data.project) || [];
     list.push(post);
     projectPosts.set(post.data.project, list);
-  } else {
-    blogPosts.push(post);
   }
 }
-
-// Get latest post per project
 const latestPerProject = new Map<string, typeof allPosts[number]>();
 for (const [project, posts] of projectPosts) {
   latestPerProject.set(project, posts[0]);
 }
+
+const recentPosts = allPosts.slice(0, 8);
+const fmt = (d: Date) =>
+  `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
 ---
 
-<BaseLayout title="谢韬的工作台" description="一个面向 GitHub Pages 的个人博客骨架，记录技术、项目与自动化实践。">
-  <section class="card hero">
-    <div class="eyebrow">github.io · Astro · 可长期维护</div>
-    <h1>在 AI 大潮下砥砺前行，<br/>而不是花哨名片页。</h1>
-    <p class="muted">
-      这里重点记录自动化、OpenClaw、Feishu 文档、GitHub 工作流，以及那些值得长期沉淀的方法和项目。
+<BaseLayout title="谢韬的工作台" description="造 agent、写自动化、拆源码——一份长期维护的工程日志。">
+  <section class="hero">
+    <div class="eyebrow">Engineering Log</div>
+    <h1>造 agent,写自动化,拆源码。</h1>
+    <p class="muted hero-sub">
+      这里是谢韬的长期工作日志:个人分布式 Agent 运行时、飞书自动化、
+      Claude Code 源码拆解,以及那些值得沉淀成方法的实践。
+    </p>
+    <p class="hero-now">
+      <span class="now-label">最近在做</span>
+      <a href="/blog/agent-farm/">Agent Farm — 个人分布式 Agent 运行时</a>
     </p>
   </section>
 
-  <section style="margin-top: 20px;">
+  <section class="home-section">
     <div class="section-header">
-      <div>
-        <h2>项目动态</h2>
-        <p class="muted">按项目追踪最新进展。</p>
-      </div>
+      <h2>项目</h2>
+      <a href="/projects" class="view-all">全部 &rarr;</a>
     </div>
-    <div class="grid projects">
+    <div class="project-rows">
       {Object.entries(PROJECTS).map(([key, meta]) => {
         const latest = latestPerProject.get(key);
         return (
-          <article class="card project-card">
-            <div class="project-label"><a href={`/blog/${key}/`}>{meta.label}</a></div>
-            <p class="muted project-desc">{meta.description}</p>
+          <div class="project-row">
+            <div class="project-head">
+              <a class="project-name" href={`/blog/${key}/`}>{meta.label}</a>
+              <span class="muted project-desc">{meta.description}</span>
+            </div>
             {latest && (
-              <div class="latest-post">
-                <div class="meta">{latest.data.pubDate.toLocaleDateString('zh-CN')}</div>
-                <h3><a href={`/blog/${latest.id.replace(/\.md$/, '')}/`}>{latest.data.title}</a></h3>
-                <p class="muted">{latest.data.description}</p>
-              </div>
+              <a class="project-latest" href={`/blog/${postSlug(latest.id)}/`}>
+                <span class="meta">{fmt(latest.data.pubDate)}</span>
+                <span class="latest-title">{latest.data.title}</span>
+              </a>
             )}
-          </article>
+          </div>
         );
       })}
     </div>
   </section>
 
-  {blogPosts.length > 0 && (
-    <section style="margin-top: 32px;">
-      <div class="section-header">
-        <div>
-          <h2>博客文章</h2>
-          <p class="muted">先把能稳定发布和持续写下去的结构搭好。</p>
-        </div>
-        <a href="/blog" class="view-all">查看全部 <span>&rarr;</span></a>
-      </div>
-      <div class="grid posts">
-        {blogPosts.map((post) => <PostCard post={post} />)}
-      </div>
-    </section>
-  )}
+  <section class="home-section">
+    <div class="section-header">
+      <h2>最近文章</h2>
+      <a href="/blog" class="view-all">全部 &rarr;</a>
+    </div>
+    <div class="posts">
+      {recentPosts.map((post) => <PostCard post={post} />)}
+    </div>
+  </section>
 </BaseLayout>
 
 <style>
-  .projects {
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  }
-  .project-card {
+  .hero { padding: 16px 0 8px; }
+  .hero h1 { font-size: clamp(1.7rem, 4.5vw, 2.4rem); margin-bottom: 14px; }
+  .hero-sub { max-width: 56ch; font-size: 1.02rem; }
+  .hero-now {
+    margin-top: 22px;
+    font-size: 0.92rem;
     display: flex;
-    flex-direction: column;
-    gap: 12px;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
   }
-  .project-label {
+  .now-label {
     font-family: var(--font-mono);
-    font-weight: 700;
-    font-size: 1.1rem;
-  }
-  .project-label a {
-    color: var(--text);
-    transition: color 0.15s;
-  }
-  .project-card:hover .project-label a {
+    font-size: 0.74rem;
+    letter-spacing: 0.08em;
     color: var(--accent);
+    border: 1px solid var(--accent);
+    border-radius: 999px;
+    padding: 2px 10px;
+    white-space: nowrap;
   }
-  .project-desc {
-    font-size: 0.88rem;
-    margin: 0;
-  }
-  .latest-post {
-    margin-top: 4px;
-    padding-top: 12px;
-    border-top: 1px solid var(--line);
-  }
-  .latest-post h3 {
-    margin: 4px 0;
-    font-size: 0.95rem;
-  }
-  .latest-post h3 a {
-    color: var(--text);
-    transition: color 0.15s;
-  }
-  .project-card:hover .latest-post h3 a {
-    color: var(--accent);
-  }
-  .latest-post p {
-    font-size: 0.85rem;
-    margin: 0;
-    line-height: 1.5;
-  }
-  .posts {
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  }
+
+  .home-section { margin-top: 46px; }
   .section-header {
     display: flex;
     justify-content: space-between;
-    align-items: end;
+    align-items: baseline;
     gap: 16px;
-    margin-bottom: 16px;
+    margin-bottom: 6px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--line);
   }
+  .section-header h2 { margin: 0; font-size: 1.05rem; }
   .view-all {
     font-family: var(--font-mono);
-    font-size: 0.85rem;
-    font-weight: 600;
+    font-size: 0.8rem;
+    color: var(--muted);
     white-space: nowrap;
-    padding: 6px 14px;
-    border-radius: 8px;
-    border: 1px solid var(--line);
-    transition: all 0.2s;
   }
-  .view-all:hover {
-    border-color: var(--accent);
-    background: var(--accent-soft);
-    text-decoration: none;
+  .view-all:hover { color: var(--accent); text-decoration: none; }
+
+  .project-rows { display: flex; flex-direction: column; }
+  .project-row {
+    display: grid;
+    grid-template-columns: minmax(220px, 5fr) 7fr;
+    gap: 6px 28px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--line);
+    align-items: baseline;
   }
-  .view-all span {
-    display: inline-block;
-    transition: transform 0.2s;
+  .project-head { display: flex; flex-direction: column; gap: 2px; }
+  .project-name {
+    color: var(--text);
+    font-weight: 650;
+    font-size: 0.98rem;
   }
-  .view-all:hover span {
-    transform: translateX(3px);
+  .project-name:hover { color: var(--accent); text-decoration: none; }
+  .project-desc { font-size: 0.84rem; }
+  .project-latest {
+    display: flex;
+    gap: 14px;
+    align-items: baseline;
+    color: var(--text);
+    min-width: 0;
+  }
+  .project-latest:hover { text-decoration: none; }
+  .project-latest:hover .latest-title { color: var(--accent); }
+  .latest-title {
+    font-size: 0.92rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    transition: color 0.15s;
+  }
+
+  @media (max-width: 640px) {
+    .project-row { grid-template-columns: 1fr; }
+    .latest-title { white-space: normal; }
   }
 </style>

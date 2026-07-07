@@ -13,7 +13,12 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     <div id="search-box"></div>
     <div id="results"></div>
   </section>
-</BaseLayout>
 
-<link href="/pagefind/pagefind-ui.css" rel="stylesheet" />
-<script src="/pagefind/pagefind-ui.js" onload="new PagefindUI({ element: '#search-box', showSubResults: true, showImages: false });" />
+  <link rel="stylesheet" href="/pagefind/pagefind-ui.css" />
+  <script is:inline src="/pagefind/pagefind-ui.js"></script>
+  <script is:inline>
+    window.addEventListener('DOMContentLoaded', function() {
+      new PagefindUI({ element: '#search-box', showSubResults: true, showImages: false });
+    });
+  </script>
+</BaseLayout>

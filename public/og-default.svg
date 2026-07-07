@@ -1,0 +1,17 @@
+<svg width="1200" height="630" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0c0e14"/>
+      <stop offset="100%" style="stop-color:#161921"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#2563eb"/>
+      <stop offset="100%" style="stop-color:#c47a5a"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect x="0" y="0" width="1200" height="4" fill="url(#accent)"/>
+  <text x="80" y="280" font-family="IBM Plex Mono, monospace" font-size="52" font-weight="700" fill="#e2e5eb">_"��\�</text>
+  <text x="80" y="340" font-family="IBM Plex Sans, sans-serif" font-size="24" fill="#7c8496">�U�AI Agent�\A�����/��</text>
+  <text x="80" y="540" font-family="IBM Plex Mono, monospace" font-size="18" fill="#5f6980">taoxiesz.github.io</text>
+</svg>

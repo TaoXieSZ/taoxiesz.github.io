@@ -9,7 +9,7 @@ const blog = defineCollection({
     draft: z.boolean().default(false),
     tags: z.array(z.string()).default([]),
     author: z.string().default('谢韬'),
-    project: z.enum(['openclaw', 'mewagents', 'feishu', 'claude-code', 'oh-my-cursor']).optional()
+    project: z.enum(['openclaw', 'mewagents', 'feishu', 'claude-code', 'oh-my-cursor', 'agent-farm']).optional()
   })
 });
 

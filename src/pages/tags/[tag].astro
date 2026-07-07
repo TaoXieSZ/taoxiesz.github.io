@@ -1,0 +1,36 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PostCard from '../../components/PostCard.astro';
+import { getCollection } from 'astro:content';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('blog', ({ data }) => !data.draft);
+  const tagSet = new Set<string>();
+  for (const post of posts) {
+    for (const tag of post.data.tags) tagSet.add(tag);
+  }
+  return [...tagSet].map((tag) => ({
+    params: { tag },
+    props: {
+      posts: posts
+        .filter((p) => p.data.tags.includes(tag))
+        .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()),
+    },
+  }));
+}
+
+const { tag } = Astro.params;
+const { posts } = Astro.props;
+---
+
+<BaseLayout title={`#${tag} | 谢韬的工作台`} description={`标签 #${tag} 下的所有文章。`}>
+  <section class="card hero">
+    <div class="eyebrow"><a href="/tags">标签</a> / #{tag}</div>
+    <h1>#{tag}</h1>
+    <p class="muted">共 {posts.length} 篇文章。</p>
+  </section>
+
+  <section class="grid posts" style="margin-top: 20px;">
+    {posts.map((post) => <PostCard post={post} />)}
+  </section>
+</BaseLayout>

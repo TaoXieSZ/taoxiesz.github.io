@@ -2,11 +2,13 @@
 import { getCollection, render } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import TableOfContents from '../../components/TableOfContents.astro';
+import { readingTime } from '../../utils/reading-time';
+import { postSlug } from '../../consts';
 
 export async function getStaticPaths() {
   const posts = await getCollection('blog', ({ data }) => !data.draft);
   return posts.map((post) => ({
-    params: { slug: post.id.replace(/\.md$/, '') },
+    params: { slug: postSlug(post.id) },
     props: { post }
   }));
 }
@@ -14,18 +16,25 @@ export async function getStaticPaths() {
 const { post } = Astro.props;
 const { Content, headings } = await render(post);
 const hasToc = headings.filter(h => h.depth >= 2 && h.depth <= 3).length > 0;
+const time = readingTime(post.body || '');
 ---
 
-<BaseLayout title={`${post.data.title} | 谢韬的工作台`} description={post.data.description}>
+<BaseLayout title={`${post.data.title} | 谢韬的工作台`} description={post.data.description} ogType="article" publishedTime={post.data.pubDate}>
   <div class:list={['post-layout', { 'has-toc': hasToc }]}>
     <article class="prose">
-      <div class="meta">{post.data.pubDate.toLocaleDateString('zh-CN')} · {post.data.author}</div>
+      <div class="meta">
+        {post.data.pubDate.toLocaleDateString('zh-CN')}
+        {post.data.updatedDate && (
+          <span>（更新于 {post.data.updatedDate.toLocaleDateString('zh-CN')}）</span>
+        )}
+         · {post.data.author} · {time}
+      </div>
       <h1>{post.data.title}</h1>
       <p class="muted">{post.data.description}</p>
       {post.data.tags.length > 0 && (
         <div class="tag-list" style="margin-bottom: 20px;">
           {post.data.tags.map((tag) => (
-            <span class="tag">#{tag}</span>
+            <a href={`/tags/${encodeURIComponent(tag)}/`} class="tag">#{tag}</a>
           ))}
         </div>
       )}
@@ -38,6 +47,15 @@ const hasToc = headings.filter(h => h.depth >= 2 && h.depth <= 3).length > 0;
 <style>
   .post-layout {
     display: block;
+  }
+
+  .prose .tag {
+    color: var(--muted);
+    text-decoration: none;
+  }
+  .prose .tag:hover {
+    color: var(--accent);
+    text-decoration: none;
   }
 
   @media (min-width: 1100px) {
