@@ -13,6 +13,22 @@ tags:
   - infrastructure
 ---
 
+<style>
+.affig{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;overflow-x:auto;margin:0 0 16px}
+.affig svg{display:block;min-width:680px;width:100%;height:auto}
+.affig text{font-family:inherit;fill:var(--text)}
+.affig .lbl{font-size:13px;font-weight:600}
+.affig .sm{font-size:11px;fill:var(--muted);font-weight:400}
+.affig .mono{font-family:var(--font-mono);font-size:10.5px;fill:var(--muted)}
+.affig .box{fill:var(--surface);stroke:var(--line);stroke-width:1.2}
+.affig .core{fill:var(--accent-soft);stroke:var(--accent)}
+.affig .warm{fill:transparent;stroke:#b07f2e}
+.affig .arrow{stroke:var(--muted);stroke-width:1.4;fill:none}
+.affig .arrow.strong{stroke:var(--accent);stroke-width:1.8}
+.affig .arrow.dash{stroke-dasharray:5 4}
+.affig .cap{font-size:12px;fill:var(--muted)}
+</style>
+
 一开始只是想要一个"在飞书里随叫随到的 AI 助手"。几周之后,它长成了一套我称为 **Agent Farm** 的个人分布式 Agent 运行时:
 
 - **2 个飞书 bot**(一个试验田、一个工作专用),背后是 **2 个互相隔离的控制面**
@@ -35,11 +51,66 @@ tags:
 
 两者之间是普通 HTTP + bearer,控制面通过配置里的 `engine` 字段把不同 agent 定义钉到不同机器。控制面部署在一台常驻小主机上——合上笔记本,bot 不死。
 
+当前的全景是这样(两个 bot、两个互相隔离的控制面、跨机的引擎群):
+
+<div class="affig"><svg viewBox="0 0 800 340" role="img" aria-label="Agent Farm 全景拓扑">
+  <defs><marker id="fg1" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M1,1 L8,4.5 L1,8" fill="none" stroke="context-stroke" stroke-width="1.4"/></marker></defs>
+  <rect x="20" y="40" width="150" height="52" rx="6" class="box warm"/>
+  <text x="95" y="62" text-anchor="middle" class="lbl">飞书 · 试验田 bot</text>
+  <text x="95" y="80" text-anchor="middle" class="sm">WS 长连接</text>
+  <rect x="20" y="220" width="150" height="52" rx="6" class="box warm"/>
+  <text x="95" y="242" text-anchor="middle" class="lbl">飞书 · 工作 bot</text>
+  <text x="95" y="260" text-anchor="middle" class="sm">刻意隔离,最小能力</text>
+  <rect x="230" y="40" width="160" height="52" rx="6" class="box core"/>
+  <text x="310" y="62" text-anchor="middle" class="lbl">dispatch · 测试面</text>
+  <text x="310" y="80" text-anchor="middle" class="sm">5 个 agent 定义</text>
+  <rect x="230" y="220" width="160" height="52" rx="6" class="box core"/>
+  <text x="310" y="242" text-anchor="middle" class="lbl">dispatch · 工作面</text>
+  <text x="310" y="260" text-anchor="middle" class="sm">1 引擎 · 1 agent</text>
+  <rect x="470" y="16" width="180" height="46" rx="6" class="box"/>
+  <text x="560" y="35" text-anchor="middle" class="lbl">引擎 · 工作 Mac</text>
+  <text x="560" y="52" text-anchor="middle" class="sm">Cursor 云后端</text>
+  <rect x="470" y="78" width="180" height="46" rx="6" class="box core"/>
+  <text x="560" y="97" text-anchor="middle" class="lbl">引擎 · 工作 Mac ×2</text>
+  <text x="560" y="114" text-anchor="middle" class="sm">OpenCode → 混元 hy3 ★</text>
+  <rect x="470" y="152" width="180" height="46" rx="6" class="box"/>
+  <text x="560" y="171" text-anchor="middle" class="lbl">引擎 · 常驻小主机</text>
+  <text x="560" y="188" text-anchor="middle" class="sm">两个控制面共享</text>
+  <rect x="470" y="226" width="180" height="46" rx="6" class="box"/>
+  <text x="560" y="245" text-anchor="middle" class="lbl">引擎 · 云端 VM</text>
+  <text x="560" y="262" text-anchor="middle" class="sm">代理路径,延迟高但可用</text>
+  <path d="M170 66 L230 66" class="arrow strong" marker-end="url(#fg1)"/>
+  <path d="M170 246 L230 246" class="arrow strong" marker-end="url(#fg1)"/>
+  <path d="M390 58 L470 39" class="arrow" marker-end="url(#fg1)"/>
+  <path d="M390 66 L470 101" class="arrow" marker-end="url(#fg1)"/>
+  <path d="M390 74 L470 170" class="arrow" marker-end="url(#fg1)"/>
+  <path d="M390 82 Q440 160 470 243" class="arrow dash" marker-end="url(#fg1)"/>
+  <path d="M390 238 L470 180" class="arrow" marker-end="url(#fg1)"/>
+  <text x="400" y="320" text-anchor="middle" class="cap">共享引擎在拓扑上只画一个节点,每个控制面各自实测一条延迟边</text>
+</svg></div>
+
 ## 最值钱的一道口子:RuntimeAdapter
 
 agent-host 对 Agent 后端的依赖被压缩成一个五操作协议(创建/发送/隐藏/存在性/轮次计数),生命周期机制全部写在协议之上的基类里。具体后端只需要实现四个钩子。
 
 这道口子本周被兑现了:想用上 GLM、DeepSeek、混元这些模型,而原有后端的模型菜单是锁死的。分析下来,所谓"换模型"其实是三层问题——**模型权重、推理 API、Agent 执行循环(harness)**。裸模型 API 只给你前两层;真正贵的是第三层的 tool-loop。自己造等于重写一个 Cursor;正确答案是换一个开源、自托管、模型无关的 harness:**OpenCode**。
+
+<div class="affig"><svg viewBox="0 0 760 250" role="img" aria-label="Agent 后端的三层拆解">
+  <rect x="30" y="30" width="420" height="56" rx="6" class="box core"/>
+  <text x="52" y="53" class="lbl">层 3 · Agent 执行循环(harness)</text>
+  <text x="52" y="72" class="sm">tool-loop · 改文件 · 跑 shell · 挂 MCP · 会话持久化 —— 最贵的一层</text>
+  <rect x="30" y="100" width="420" height="50" rx="6" class="box"/>
+  <text x="52" y="122" class="lbl">层 2 · 推理 API</text>
+  <text x="52" y="140" class="sm">chat / completions 端点 —— 易替换</text>
+  <rect x="30" y="164" width="420" height="50" rx="6" class="box"/>
+  <text x="52" y="186" class="lbl">层 1 · 模型权重</text>
+  <text x="52" y="204" class="sm">Claude / GLM / DeepSeek / 混元 —— 易替换</text>
+  <text x="490" y="52" class="sm">Cursor SDK = 三层打包(云端)</text>
+  <text x="490" y="76" class="sm">裸模型 API = 只有层1+2,</text>
+  <text x="490" y="93" class="sm">层3 要自己造 = 重写一个 Cursor</text>
+  <text x="490" y="126" class="lbl" fill="var(--accent)">OpenCode = 换一个开源自托管的层3</text>
+  <text x="490" y="148" class="sm">模型无关,层1 退化成一行配置</text>
+</svg></div>
 
 于是新后端 `OpenCodeAdapter` 只写了四个钩子(agent = OpenCode session,发送 = `session.prompt`),其余能力——休眠唤醒、活记忆注入、轮换、用量——**零改动继承**。模型退化成 agent 定义里的一个字符串:
 
@@ -64,6 +135,33 @@ agent-host 对 Agent 后端的依赖被压缩成一个五操作协议(创建/发
 ④ 控制面按标准流程派发 B → B 回答
 ⑤ 答案作为工具结果,内联出现在 A 的推理里(有界等待,超时按跳过)
 ```
+
+<div class="affig"><svg viewBox="0 0 780 240" role="img" aria-label="ask_agent 回旋镖路径">
+  <defs><marker id="fg3" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M1,1 L8,4.5 L1,8" fill="none" stroke="context-stroke" stroke-width="1.4"/></marker></defs>
+  <rect x="20" y="24" width="330" height="190" rx="10" fill="none" stroke="var(--line)" stroke-dasharray="3 5"/>
+  <text x="40" y="46" class="mono">工作 Mac(双方的"身体")</text>
+  <rect x="40" y="60" width="130" height="48" rx="6" class="box core"/>
+  <text x="105" y="80" text-anchor="middle" class="lbl">Agent A</text>
+  <text x="105" y="97" text-anchor="middle" class="sm">调用 ask_agent 工具</text>
+  <rect x="40" y="150" width="130" height="48" rx="6" class="box"/>
+  <text x="105" y="170" text-anchor="middle" class="lbl">MCP 子进程</text>
+  <text x="105" y="187" text-anchor="middle" class="sm">stdio · 零依赖</text>
+  <rect x="200" y="60" width="130" height="48" rx="6" class="box core"/>
+  <text x="265" y="80" text-anchor="middle" class="lbl">Agent B</text>
+  <text x="265" y="97" text-anchor="middle" class="sm">走标准派发被唤醒</text>
+  <rect x="480" y="90" width="200" height="70" rx="6" class="box warm"/>
+  <text x="580" y="113" text-anchor="middle" class="lbl">dispatch · 常驻主机</text>
+  <text x="580" y="131" text-anchor="middle" class="sm">允许名单 · 环检测 · 深度上限</text>
+  <text x="580" y="148" text-anchor="middle" class="sm">全程 trace 审计</text>
+  <path d="M105 108 L105 150" class="arrow" marker-end="url(#fg3)"/>
+  <text x="112" y="133" class="sm">①</text>
+  <path d="M170 174 Q400 200 500 150" class="arrow strong" marker-end="url(#fg3)"/>
+  <text x="350" y="203" class="sm">② POST /api/ask(bearer)</text>
+  <path d="M480 105 Q380 60 330 78" class="arrow strong" marker-end="url(#fg3)"/>
+  <text x="380" y="62" class="sm">③④ 护栏通过 → 派发 B</text>
+  <path d="M200 74 L170 74" class="arrow dash" marker-end="url(#fg3)"/>
+  <text x="152" y="66" class="sm">⑤ 答案内联返回</text>
+</svg></div>
 
 有意思的是物理路径:控制面在常驻主机上,而问答双方的"身体"可能都在我的工作 Mac 上——一条问题走的是"本机 → 控制面 → 本机"的回旋镖。这不是浪费:换来的是**所有 agent 间通信都经过同一个有审计、有护栏、有 trace 的入口**。同一个 MCP 进程里还住着 `notify_user`(agent 主动 DM 我,带限流和去重)和 `request_approval`(高危动作弹飞书审批卡,我点批准/拒绝,超时视为拒绝)。
 
