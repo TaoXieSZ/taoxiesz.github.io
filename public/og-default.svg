@@ -11,7 +11,7 @@
   </defs>
   <rect width="1200" height="630" fill="url(#bg)"/>
   <rect x="0" y="0" width="1200" height="4" fill="url(#accent)"/>
-  <text x="80" y="280" font-family="IBM Plex Mono, monospace" font-size="52" font-weight="700" fill="#e2e5eb">_"��\�</text>
-  <text x="80" y="340" font-family="IBM Plex Sans, sans-serif" font-size="24" fill="#7c8496">�U�AI Agent�\A�����/��</text>
-  <text x="80" y="540" font-family="IBM Plex Mono, monospace" font-size="18" fill="#5f6980">taoxiesz.github.io</text>
+<text x="80" y="280" font-family="Maple Mono, monospace" font-size="52" font-weight="700" fill="#e2e5eb">_"��\�</text>
+  <text x="80" y="340" font-family="Maple Mono, monospace" font-size="24" fill="#7c8496">�U�AI Agent�\A�������/��</text>
+  <text x="80" y="540" font-family="Maple Mono, monospace" font-size="18" fill="#5f6980">taoxiesz.github.io</text>
 </svg>

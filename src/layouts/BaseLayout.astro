@@ -36,9 +36,7 @@ const currentPath = Astro.url.pathname;
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={new URL('/og-default.svg', SITE_URL)} />
     <link rel="alternate" type="application/rss+xml" title={SITE_TITLE} href="/rss.xml" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="preload" href="/fonts/MapleMono-Regular.ttf.woff2" as="font" type="font/woff2" crossorigin />
     <script is:inline>
       (function() {
         var theme = localStorage.getItem('theme');
@@ -94,6 +92,48 @@ const currentPath = Astro.url.pathname;
 </html>
 
 <style is:global>
+  @font-face {
+    font-family: 'Maple Mono';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url('/fonts/MapleMono-Regular.ttf.woff2') format('woff2');
+  }
+  @font-face {
+    font-family: 'Maple Mono';
+    font-style: normal;
+    font-weight: 500;
+    font-display: swap;
+    src: url('/fonts/MapleMono-Medium.ttf.woff2') format('woff2');
+  }
+  @font-face {
+    font-family: 'Maple Mono';
+    font-style: normal;
+    font-weight: 600;
+    font-display: swap;
+    src: url('/fonts/MapleMono-SemiBold.ttf.woff2') format('woff2');
+  }
+  @font-face {
+    font-family: 'Maple Mono';
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url('/fonts/MapleMono-Bold.ttf.woff2') format('woff2');
+  }
+  @font-face {
+    font-family: 'Maple Mono';
+    font-style: italic;
+    font-weight: 400;
+    font-display: swap;
+    src: url('/fonts/MapleMono-Italic.ttf.woff2') format('woff2');
+  }
+  @font-face {
+    font-family: 'Maple Mono';
+    font-style: italic;
+    font-weight: 700;
+    font-display: swap;
+    src: url('/fonts/MapleMono-BoldItalic.ttf.woff2') format('woff2');
+  }
   :root {
     color-scheme: light dark;
     --bg: #f6f4ee;
@@ -105,8 +145,8 @@ const currentPath = Astro.url.pathname;
     --accent: #22624a;
     --accent-soft: #e7efe9;
     --max: 880px;
-    --font-body: 'IBM Plex Sans', ui-sans-serif, -apple-system, 'PingFang SC', 'Hiragino Sans GB', system-ui, sans-serif;
-    --font-mono: 'IBM Plex Mono', ui-monospace, 'Menlo', monospace;
+    --font-body: 'Maple Mono', 'PingFang SC', 'Hiragino Sans GB', ui-monospace, 'SFMono-Regular', 'Menlo', monospace;
+    --font-mono: 'Maple Mono', 'PingFang SC', 'Hiragino Sans GB', ui-monospace, 'SFMono-Regular', 'Menlo', monospace;
     --radius: 10px;
   }
   [data-theme="dark"] {
